@@ -1,0 +1,3 @@
+# profile|name|email
+work|John Doe|john.doe@example.com
+personal|John doe|john.doe@gmail.com
