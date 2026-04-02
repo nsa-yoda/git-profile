@@ -1,0 +1,3 @@
+somedirectoryname:work
+anotherdirectoryname:personal
+my-other-repo:work
