@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PROFILE_SCRIPT="${HOME}/git-profile.sh"
+PROFILE_FILE="${GIT_PROFILE_FILE:-${HOME}/profiles.txt}"
+REPO_PROFILE_FILE="${GIT_REPO_PROFILE_FILE:-${HOME}/repo-profiles.txt}"
+
+# If no mapping file exists, do nothing.
+[ -f "$REPO_PROFILE_FILE" ] || exit 0
+
+# Must be inside a git repo
+repo_root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+[ -n "$repo_root" ] || exit 0
+
+repo_name="$(basename "$repo_root")"
+
+expected_profile=""
+
+while IFS=':' read -r repo profile; do
+  [ -z "${repo:-}" ] && continue
+  case "$repo" in
+    \#*) continue ;;
+  esac
+
+  if [ "$repo" = "$repo_name" ]; then
+    expected_profile="$profile"
+    break
+  fi
+done < "$REPO_PROFILE_FILE"
+
+# No rule for this repo -> allow commit
+[ -n "$expected_profile" ] || exit 0
+
+# Read expected name/email from profiles.txt
+expected_name=""
+expected_email=""
+
+if [ ! -f "$PROFILE_FILE" ]; then
+  echo "Git profile check failed: profiles file not found: $PROFILE_FILE" >&2
+  exit 1
+fi
+
+while IFS='|' read -r key name email; do
+  [ -z "${key:-}" ] && continue
+  case "$key" in
+    \#*) continue ;;
+  esac
+
+  if [ "$key" = "$expected_profile" ]; then
+    expected_name="$name"
+    expected_email="$email"
+    break
+  fi
+done < "$PROFILE_FILE"
+
+if [ -z "$expected_name" ] || [ -z "$expected_email" ]; then
+  echo "Git profile check failed: profile '$expected_profile' not found in $PROFILE_FILE" >&2
+  exit 1
+fi
+
+current_name="$(git config user.name || true)"
+current_email="$(git config user.email || true)"
+
+if [ "$current_name" != "$expected_name" ] || [ "$current_email" != "$expected_email" ]; then
+  echo "Incorrect profile for this repo" >&2
+  echo "Repo            : $repo_name" >&2
+  echo "Expected profile: $expected_profile" >&2
+  echo "Expected name   : $expected_name" >&2
+  echo "Expected email  : $expected_email" >&2
+  echo "Current name    : ${current_name:-<unset>}" >&2
+  echo "Current email   : ${current_email:-<unset>}" >&2
+  echo >&2
+  echo "Fix it with:" >&2
+  echo "  git-profile $expected_profile" >&2
+  exit 1
+fi
+
+exit 0
