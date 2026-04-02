@@ -8,6 +8,17 @@ A small CLI script for switching your global Git identity between predefined pro
 - Show the currently active global Git identity
 - Simple to extend with additional profiles
 
+## Installation
+
+1. Copy `git-profile.sh` to your home directory (e.g., `cp git-profile.sh ~/git-profile.sh`)
+2. Copy `profiles.txt` to your home directory
+3. Copy `repo-profiles.txt` to your home directory
+4. Copy `.git-hooks` to your home directory
+5. Run `chmod +x ~/.git-hooks/pre-commit`
+5. Run `chmod +x ~/git-profile.sh`
+6. Tell git by running `git config --global core.hooksPath ~/.git-hooks`
+7. 
+
 ## Usage
 
 `./git-profile.sh` Shows the current global Git identity.
