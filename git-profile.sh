@@ -59,6 +59,19 @@ show_current() {
   echo "Current Git Identity:"
   echo "Name : $(git config --global user.name 2>/dev/null || true)"
   echo "Email: $(git config --global user.email 2>/dev/null || true)"
+
+  local signing_key
+  local gpg_sign
+
+  signing_key="$(git config --global user.signingkey 2>/dev/null || true)"
+  gpg_sign="$(git config --global commit.gpgsign 2>/dev/null || true)"
+
+  if [ -n "$signing_key" ] && [ "$gpg_sign" = "true" ]; then
+    echo "GPG  : enabled"
+    echo "Key  : $signing_key"
+  else
+    echo "GPG  : disabled"
+  fi
 }
 
 require_profiles_file() {
@@ -75,7 +88,7 @@ get_profile() {
 
   require_profiles_file
 
-  while IFS='|' read -r key name email; do
+  while IFS='|' read -r key name email signingkey; do
     [ -z "${key:-}" ] && continue
     case "$key" in
       \#*) continue ;;
@@ -84,6 +97,7 @@ get_profile() {
     if [ "$key" = "$wanted_profile" ]; then
       PROFILE_NAME="$name"
       PROFILE_EMAIL="$email"
+      PROFILE_SIGNINGKEY="$signingkey"
       return 0
     fi
   done < "$PROFILE_FILE"
@@ -115,6 +129,16 @@ set_profile() {
 
   git config --global user.name "$PROFILE_NAME"
   git config --global user.email "$PROFILE_EMAIL"
+  
+  if [ -n "${PROFILE_SIGNINGKEY:-}" ]; then
+    git config --global user.signingkey "$PROFILE_SIGNINGKEY"
+    git config --global commit.gpgsign true
+    git config --global tag.gpgSign true
+  else
+    git config --global --unset-all user.signingkey 2>/dev/null || true
+    git config --global commit.gpgsign false
+    git config --global tag.gpgSign false
+  fi
 
   echo "Switched to $profile git profile"
   show_current

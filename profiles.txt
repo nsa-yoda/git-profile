@@ -1,3 +1,4 @@
 # profile|name|email
-work|John Doe|john.doe@example.com
-personal|John doe|john.doe@gmail.com
+work|John Doe|john.doe@example.com|00000000000000000000000000000000DEADPORK
+personal|John doe|john.doe@gmail.com|00000000000000000000000000000000DEADBEEF
+other|John Doe|john.doe@aol.com|
