@@ -40,7 +40,9 @@ if [ ! -f "$PROFILE_FILE" ]; then
   exit 1
 fi
 
-while IFS='|' read -r key name email; do
+# profiles.txt has four fields: profile, name, email, signing key. Keep the
+# signing key in its own variable so it cannot become part of the email value.
+while IFS='|' read -r key name email signing_key; do
   [ -z "${key:-}" ] && continue
   case "$key" in
     \#*) continue ;;
